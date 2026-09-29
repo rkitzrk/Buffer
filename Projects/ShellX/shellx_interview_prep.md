@@ -577,3 +577,120 @@ To add support: extend `Job` to hold `vector<pid_t> pids` (or adopt process grou
 | Known limitation | No backgrounded pipelines — `Job` tracks 1 PID only | `jobs.hpp`, `executor.cpp` |
 
 Good luck — you don't need to memorize these answers verbatim. Understand *why* each design decision was made, since a good interviewer will ask "what if you did it differently" as a follow-up, and the README's own "Design Decisions" table is essentially a pre-built answer key for exactly that.
+
+---
+
+## Pronunciation guide
+
+Say these correctly out loud and you'll sound like you've actually used them, not just read about them. Grouped by category; syllables to stress are in CAPS.
+
+### Syscalls / library functions
+
+| Term | Pronunciation |
+|---|---|
+| `fork()` | "fork" |
+| `exec()` (the family in general) | "EX-eck" |
+| `execvp()` | "EX-eck-vee-pee" (spell out V-P, don't blend it) |
+| `execv()` | "EX-eck-vee" |
+| `execl()` | "EX-eck-el" |
+| `execve()` | "EX-eck-vee-ee" |
+| `wait()` | "wait" |
+| `waitpid()` | "wait-pid" (PID as one syllable, rhymes with "kid") |
+| `pipe()` | "pipe" |
+| `dup2()` | "dupe-two" (like "duplicate," not "dup-two" with a short u) |
+| `sigaction()` | "sig-ACK-shun" |
+| `chdir()` | usually said "change-dir" or letter-by-letter "C-H-D-I-R"; either is fine, "change-dir" is more common in speech |
+| `getcwd()` | "get-C-W-D" (spell out C-W-D) or "get current working directory" |
+| `kill()` | "kill" |
+| `open()` / `close()` | "open" / "close" (plain English) |
+| `perror()` | "P-error" or "print error" |
+| `_exit()` | "underscore exit" or just "exit" with emphasis that it's the raw syscall version (context usually makes clear vs. library `exit()`) |
+| `glob()` | "glob" (rhymes with "blob") |
+| `readdir()` | "read-DIR" (read, then dir) |
+| `setpgid()` | "set-P-G-I-D" (spell out P-G-I-D) |
+| `tcsetpgrp()` | "T-C-set-P-group" or spelled "T-C-set-P-G-R-P" — commonly just said as "tc-set-pgrp," spelling the "pgrp" part |
+| `tcgetattr()` / `tcsetattr()` | "T-C-get-attributes" / "T-C-set-attributes" |
+
+### Signals
+
+| Term | Pronunciation |
+|---|---|
+| `SIGCHLD` | "sig-CHILD" (the CHLD is just pronounced "child") |
+| `SIGINT` | "sig-INT" (INT rhymes with "hint," not spelled out) |
+| `SIGTERM` | "sig-TERM" (TERM as in "terminate") |
+| `SIGKILL` | "sig-KILL" |
+| `SIGSTOP` | "sig-STOP" |
+| `SIGTSTP` | "sig-T-stop" (say "T" as the letter, then "stop") |
+| `SIGCONT` | "sig-CONT" (rhymes with "front," short for "continue") |
+| `SIGPIPE` | "sig-PIPE" |
+| `SA_RESTART` | "S-A restart" (spell S-A, then say "restart" normally) |
+| `SA_NOCLDSTOP` | "S-A no-child-stop" (say it as words: "no child stop") |
+| `SIG_DFL` | "sig-D-F-L" (spell out D-F-L) or "sig-default" |
+
+### Macros / flags on `status` from `wait`/`waitpid`
+
+| Term | Pronunciation |
+|---|---|
+| `WIFEXITED` | "W-if-exited" (say "W," then "if exited" as two words) |
+| `WEXITSTATUS` | "W-exit-status" |
+| `WIFSIGNALED` | "W-if-signaled" |
+| `WTERMSIG` | "W-term-sig" (term, then sig) |
+| `WNOHANG` | "W-no-hang" (say it as three words: W, no, hang) |
+| `WUNTRACED` | "W-untraced" (un-TRAYST) |
+| `WCONTINUED` | "W-continued" |
+
+### `open()` flags
+
+| Term | Pronunciation |
+|---|---|
+| `O_RDONLY` | "O-R-D-only" or "O-read-only" (both used; "O-read-only" is more natural in speech) |
+| `O_WRONLY` | "O-write-only" (don't try to sound out "WRONLY" — say "write-only") |
+| `O_CREAT` | "O-cree-AT" or "O-create" (CREAT is missing the final E, but most people just say "create") |
+| `O_TRUNC` | "O-trunk" (rhymes with "trunk," short for "truncate") |
+| `O_APPEND` | "O-append" |
+
+### errno values
+
+| Term | Pronunciation |
+|---|---|
+| `errno` | "AIR-no" or "err-no" (either is common; "AIR-no" is more standard) |
+| `EINTR` | "E-int-er" or "E-interrupt" — commonly said "E-I-N-T-R" spelled out, or "E-intr" |
+| `ENOENT` | "E-no-ent" (say "E," then "no," then "ent" — short for "no entry") |
+| `EACCES` | "E-access" (the missing S is silent in speech — just say "access") |
+
+### C++ / language terms
+
+| Term | Pronunciation |
+|---|---|
+| `sig_atomic_t` | "sig-atomic-tee" (say "atomic" normally, then the trailing "_t" as "tee") |
+| `volatile` | "VOL-uh-tile" (like the English word) |
+| `pid_t` | "P-I-D-tee" (spell PID, then "tee" for `_t`) |
+| `argv` | "AR-jay-vee" (like "arg-vee," short for "argument vector") |
+| `argc` | "AR-jay-see" |
+| `RAII` | "R-A-I-I" spelled out letter by letter (no natural word form; some say "raw-ee" informally but spelling it out is safest in an interview) |
+| `STL` | "S-T-L" spelled out ("Standard Template Library") |
+| `stdin` / `stdout` / `stderr` | "STAN-dard-in" / "STAN-dard-out" / "STAN-dard-err" (or informally "std-in," "std-out," "std-err" said quickly) |
+| `STDIN_FILENO` | "STD-in file number" (say "std-in," then "file number" — don't try to sound out FILENO as one word) |
+| `STDOUT_FILENO` | "STD-out file number" |
+
+### General systems/shell terms
+
+| Term | Pronunciation |
+|---|---|
+| POSIX | "PAH-six" (rhymes with "Pontiac six," two syllables) |
+| REPL | "REP-ul" (rhymes with "steeple" minus the ee — most people say it like the word "ripple" with an e) |
+| PID | "pid" (one syllable, rhymes with "kid") |
+| PGID | "P-G-I-D" spelled out, or "P-group-ID" |
+| fd / "file descriptor" | say "file descriptor" in full the first time, "F-D" (spelled) afterward |
+| EOF | "E-O-F" spelled out ("end of file") |
+| PATH (the env var) | just say "path," but it's common to say "the PATH variable" to disambiguate from a filesystem path |
+| CMake | "SEE-make" (like "see" + "make") |
+| ASan | "AY-san" (short for AddressSanitizer — say it like "a-san") |
+| UBSan | "U-B-san" (spell U-B, then "san" — short for UndefinedBehaviorSanitizer) |
+| `malloc` | "MAL-lock" |
+| glob / globbing | "glob" / "GLOB-ing" (rhymes with "blob"/"robbing") |
+| heredoc | "HERE-dock" (as in "here" + "doc(ument)") |
+| zombie process | plain English, "ZOM-bee" |
+| orphan process | plain English, "OR-fun" |
+
+**Tip for the interview itself:** if you're ever unsure how to say an acronym-heavy macro like `WIFSIGNALED`, it's completely normal and safe to just say "the wait status macro that checks if it was killed by a signal" instead of forcing the pronunciation — interviewers care that you know *what it does*, not that you can say it smoothly.
