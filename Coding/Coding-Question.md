@@ -3389,4 +3389,117 @@ int main() {
 * **Exponential Time Complexity:** Because you branch `M` ways for `N` nodes, the worst-case time complexity is $O(M^N)$. This is why graph coloring problems usually have very small constraints on `N` (e.g., $N \le 20$).
 * **Linear Node Progression:** Unlike DFS where you jump to neighbors, notice that the recursive call here simply goes to `node + 1`. We don't trace the graph's edges to determine our next step; we just move down the list of nodes sequentially while using the edges only for the `isSafe` check.
 
-**Congratulations!** We have successfully made it through all 34 custom-tailored questions. We've covered everything from arrays, strings, dynamic programming, and binary search to advanced graph theory, trees, monotonic stacks, and advanced SQL window functions.
+Based on the problem statement provided in the images, here is the complete analysis and the optimal C++ solution.
+
+### Method Explanation
+
+The problem asks us to partition deliveries from $n$ logs into exactly $k$ warehouses to maximize the sum of the deliveries in the $k/2$ warehouses with the *smallest* numbers of deliveries (since the top $k/2$ largest are compromised).
+
+A naive approach of testing all partitions is computationally impossible. However, we can use a powerful mathematical identity. For any set of $k$ numbers $w_1, w_2, \dots, w_k$, the sum of the smallest $k/2$ elements can be found using a threshold value $V$:
+
+
+$$\text{Sum of smallest } k/2 = \max_{V \ge 0} \left( \sum_{i=1}^k \min(w_i, V) - \frac{k}{2} V \right)$$
+
+This identity effectively decouples our choices! For a fixed threshold $V$, we want to maximize the sum of pieces capped at $V$.
+To maximize this for a specific log $x$, we should split it into as many pieces of size $V$ as possible. Specifically, it can provide:
+
+* $\lfloor x / V \rfloor$ pieces that are exactly size $V$.
+* 1 leftover piece of size $x \bmod V$ (if it's greater than 0).
+
+Since we need to fill exactly $k$ warehouses, we greedily pick the $k$ best available pieces (prioritizing the pieces of size $V$, followed by the largest leftovers). We iterate the threshold $V$ from $1$ up to the maximum log size, evaluate the formula, and return the overall maximum result.
+
+### C++ Source Code
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/*
+ * Complete the 'secureMaximumDeliveries' function below.
+ *
+ * The function is expected to return an INTEGER.
+ * The function accepts following parameters:
+ *  1. INTEGER_ARRAY deliveryLogs
+ *  2. INTEGER k
+ */
+int secureMaximumDeliveries(vector<int> deliveryLogs, int k) {
+    int max_L = 0;
+    for (int x : deliveryLogs) {
+        max_L = max(max_L, x);
+    }
+
+    // If all logs are 0, we can't secure any deliveries.
+    if (max_L == 0) return 0;
+
+    int max_secure = 0;
+
+    // Test all possible threshold values V
+    for (int V = 1; V <= max_L; ++V) {
+        int countV = 0;
+        vector<int> rems;
+        rems.reserve(deliveryLogs.size());
+
+        // Break down the logs based on the current threshold V
+        for (int x : deliveryLogs) {
+            countV += x / V;          // Number of full pieces of size V
+            if (x % V > 0) {
+                rems.push_back(x % V); // The remainder piece
+            }
+        }
+
+        int current_gains_sum = 0;
+        
+        // We can only use at most k warehouses.
+        if (countV >= k) {
+            // If we have enough pieces of size V, we just take k of them.
+            current_gains_sum = k * V;
+        } else {
+            // Otherwise, take all pieces of size V, and fill the rest with the largest remainders.
+            current_gains_sum = countV * V;
+            int needed = k - countV;
+
+            // Partially sort to get the top 'needed' remainders in O(N) time
+            if (needed < rems.size()) {
+                nth_element(rems.begin(), rems.begin() + needed, rems.end(), greater<int>());
+            }
+
+            int take = min(needed, (int)rems.size());
+            for (int i = 0; i < take; ++i) {
+                current_gains_sum += rems[i];
+            }
+        }
+
+        // Apply the mathematical identity to find the safe sum for this threshold V
+        int current_safe = current_gains_sum - (k / 2) * V;
+        
+        // Keep track of the maximum secure deliveries found
+        max_secure = max(max_secure, current_safe);
+    }
+
+    return max_secure;
+}
+
+int main() {
+    // Example 1 (from the problem description)
+    int n1 = 4;
+    vector<int> logs1 = {3, 5, 9, 6};
+    int k1 = 4;
+    cout << secureMaximumDeliveries(logs1, k1) << endl; // Output: 9
+
+    // Example 2 (Sample 1)
+    int n2 = 6;
+    vector<int> logs2 = {5, 5, 5, 5, 5, 5};
+    int k2 = 4;
+    cout << secureMaximumDeliveries(logs2, k2) << endl; // Output: 10
+    
+    return 0;
+}
+
+```
+
+### Complexity Analysis
+
+* **Time Complexity:** $\mathcal{O}(\max(L) \cdot N)$ where $\max(L)$ is the maximum delivery count in any single log and $N$ is the size of the array. The `nth_element` operation runs in linear $\mathcal{O}(N)$ average time. With $N \le 1000$ and $L_i \le 1000$, this loop runs at most $1,000 \times 1,000 = 1,000,000$ operations which takes extremely few milliseconds — easily passing any typical competitive programming time limits.
+
+
+* **Space/Memory Complexity:** $\mathcal{O}(N)$ for auxiliary array `rems` to store the modulo remainders. This operates well within standard memory limits.
