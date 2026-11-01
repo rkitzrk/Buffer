@@ -153,7 +153,7 @@ Use the **STAR format**: Situation → Task → Action → Result
 
 - **S — Situation:** I set a self-imposed deadline to finish LexiCore in time to discuss it in internship interviews. The scope was ambitious: three search structures, a CLI, a test suite, a benchmark harness, and docs — and I imposed one more constraint: **STL only**, no Boost, Google Benchmark, Catch2, or CLI libraries.
 - **T — Task:** Ship a complete, defensible system without dependencies, by prioritizing what interviewers and users would actually care about.
-- **A — Action:** I ordered the work by value: (1) core algorithms — edit distance, Trie, BK-Tree; (2) a working CLI so the project is demonstrable live; (3) correctness tests (oracle + property); (4) benchmarks that quantify the trade-offs; (5) documentation last. I built the supporting pieces myself — a `std::chrono::steady_clock` timing harness, percentile calculators, a seeded RNG for repeatable queries, an interactive REPL — and used `std::unique_ptr` throughout so ownership is RAII-clean, with **no manual `new`/`delete` anywhere**. I deliberately cut frequency-based ranking, a radix trie, SymSpell, and a REST layer — and recorded each cut in "Known Trade-offs" with a production path. I kept the architecture modular (Dictionary, Trie, BKTree, Ranking) so those can be added without rewrites.
+- **A — Action:** I ordered the work by value: (1) core algorithms — edit distance, Trie, BK-Tree; (2) a working CLI so the project is demonstrable live; (3) correctness tests (oracle + property); (4) benchmarks that quantify the trade-offs; (5) documentation last. I built the supporting pieces myself — a `std::chrono::high_resolution_clock` timing harness, percentile calculators, a seeded RNG for repeatable queries, an interactive REPL — and used `std::unique_ptr` throughout so ownership is RAII-clean, with **no manual `new`/`delete` anywhere**. I deliberately cut frequency-based ranking, a radix trie, SymSpell, and a REST layer — and recorded each cut in "Known Trade-offs" with a production path. I kept the architecture modular (Dictionary, Trie, BKTree, Ranking) so those can be added without rewrites.
 - **R — Result:** A working 88K-word CLI with exact, prefix, and fuzzy search; a test suite under ASan/UBSan with zero errors; benchmark results with documented methodology; and a project that builds anywhere with CMake and a C++20 compiler — no dependency management at all. The cuts are documented decisions, not accidents.
 
 ---
@@ -254,7 +254,7 @@ Use the **STAR format**: Situation → Task → Action → Result
 | **"Biggest mistake?"** | Using `editDistanceBounded()` for pruning. It returns a sentinel (`maxDist + 1`), not a real distance, so the pruning window was wrong and valid subtrees were skipped. Caught by the oracle, fixed, documented. |
 | **"Hardest part?"** | Realizing the sentinel bug: it's invisible until you see it, because the sentinel masquerades as a real distance. Once seen, obvious — which is what makes it dangerous. |
 | **"How did you test BK-Tree correctness?"** | Three tiers: unit tests (known cases), property tests (metric axioms), and an oracle test against brute-force linear scan on 800 combinations — plus ASan/UBSan on everything. |
-| **"How did you measure performance?"** | `std::chrono::steady_clock` timing, 1,000 seeded queries per run, same query set for both strategies, warm-up pass, p50/p95/p99, measured at 1K/10K/88K words. |
+| **"How did you measure performance?"** | `std::chrono::high_resolution_clock` timing, 1,000 seeded queries per run, same query set for both strategies, warm-up pass, p50/p95/p99, measured at 1K/10K/88K words. |
 | **"Why shuffle before BK-Tree insertion?"** | Sorted input makes near-identical words adjacent → degenerate chains (depth 100+). Seeded shuffle gives depth 19 and a reproducible tree. |
 | **"How did you handle memory safety?"** | All tree ownership is `std::unique_ptr` — RAII frees whole subtrees automatically; no manual `new`/`delete`; ASan + UBSan clean. |
 | **"How is Levenshtein memory-optimized?"** | Row *i* depends only on row *i−1*, so two rolling `vector<int>` rows (`prev`, `curr`) replace the full table: O(n·m) → O(m) space. `std::swap` on vectors exchanges internal pointers (O(1)), no element copying. A bounded variant adds a diagonal band and early exit — but only for yes/no threshold checks. |
@@ -273,5 +273,75 @@ Use the **STAR format**: Situation → Task → Action → Result
 | **"How do you handle ambiguous requirements?"** | "I pick an explicit policy, test it, and document it — e.g., normalization lowercases, strips non-letters, and dedupes on first occurrence." |
 | **"How did competitive programming help — and what did you unlearn?"** | "It gave me algorithmic fluency: DP and Trie traversal came easily. I had to unlearn throwaway-code habits — global arrays, raw pointers, terse names — and replace them with RAII, modular headers, tests, and documentation." |
 | **"Describe yourself in one sentence."** | "A competitive programmer with strong algorithmic intuition who builds disciplined, production-minded systems in modern C++." |
+
+---
+
+# PART 3: Verify Before You Interview (Code-Level Facts & Mathematical Invariants)
+
+*Use this section as a final sanity check before your interview. Every fact below has been cross-referenced against the active LexiCore source code and test suite.*
+
+---
+
+### 1. Codebase Coordinates (Where Everything Lives)
+
+| Component | File & Function | Key Detail |
+|---|---|---|
+| **BK-Tree Search & Pruning** | [`src/bktree.cpp:46-61`](file:///home/kumaresh/Desktop/Dev/Personal/LexiCore/src/bktree.cpp#L46-L61) | Calls `editDistance(query, node->word)` (true distance `d`), evaluates interval `[d - maxDistance, d + maxDistance]`, iterates child map. |
+| **Deterministic Shuffling** | [`src/dictionary.cpp:42-57`](file:///home/kumaresh/Desktop/Dev/Personal/LexiCore/src/dictionary.cpp#L42-L57) & [`app/main.cpp:67`](file:///home/kumaresh/Desktop/Dev/Personal/LexiCore/app/main.cpp#L67) | `std::mt19937 rng(42)` + `std::shuffle`. Slices words for subsets and shuffles full dictionary for BK-Tree insertion. |
+| **Levenshtein Memory DP** | [`src/edit_distance.cpp:9-36`](file:///home/kumaresh/Desktop/Dev/Personal/LexiCore/src/edit_distance.cpp#L9-L36) | Rolling 2-row buffers (`std::vector<int> prev, curr`), size $m + 1$, `std::swap(prev, curr)` (O(1) pointer swap). Space: $O(m)$. |
+| **Bounded Edit Distance** | [`src/edit_distance.cpp:38-94`](file:///home/kumaresh/Desktop/Dev/Personal/LexiCore/src/edit_distance.cpp#L38-L94) | `std::abs(n - m) > maxDist` early exit; diagonal band $j \in [\max(1, i - maxDist), \min(m, i + maxDist)]$; `anyValid` row-level early termination. |
+| **Trie Node & Memory** | [`include/trie.hpp:14-17`](file:///home/kumaresh/Desktop/Dev/Personal/LexiCore/include/trie.hpp#L14-L17) | `std::unordered_map<char, std::unique_ptr<TrieNode>> children;` Top-down RAII ownership, no manual `delete`. |
+| **Deterministic Ranking** | [`src/ranking.cpp:7-25`](file:///home/kumaresh/Desktop/Dev/Personal/LexiCore/src/ranking.cpp#L7-L25) | `std::sort` with primary key `a.distance < b.distance`, tie-break `a.word < b.word`. |
+| **Randomized Oracle Test** | [`tests/test_correctness.cpp:108-170`](file:///home/kumaresh/Desktop/Dev/Personal/LexiCore/tests/test_correctness.cpp#L108-L170) | 500 words dictionary, 200 queries (half mutated), 4 thresholds ($0, 1, 2, 3$) = 800 comparisons against `linearFuzzySearch()`. |
+| **Property-Based Tests** | [`tests/test_edit_distance.cpp:93-137`](file:///home/kumaresh/Desktop/Dev/Personal/LexiCore/tests/test_edit_distance.cpp#L93-L137) | Symmetry on 1,000 random string pairs; Triangle Inequality on 1,000 random string triples. |
+| **Benchmark Harness** | [`src/benchmark.cpp:98-128`](file:///home/kumaresh/Desktop/Dev/Personal/LexiCore/src/benchmark.cpp#L98-L128) | Uses `std::chrono::high_resolution_clock`, collects per-query latencies, calculates `p50`, `p95`, `p99` via `std::nth_element`/indexing, `volatile` result sinks. |
+
+---
+
+### 2. The Mathematical Proof of BK-Tree Pruning (If Asked to Prove It on a Whiteboard)
+
+Let $Q$ be the search query, $P$ be the current parent node, and $C$ be a child node connected to $P$ by an edge of weight $w = d(P, C)$.  
+We are searching for all words $C$ such that $d(Q, C) \le k$ (where $k = maxDistance$).
+
+By the triangle inequality on metric space $(X, d)$:
+1. $d(P, C) \le d(Q, P) + d(Q, C) \implies d(P, C) \le d(Q, P) + k$
+2. $d(Q, P) \le d(P, C) + d(Q, C) \implies d(P, C) \ge d(Q, P) - k$
+
+Let $d = d(Q, P)$ (the distance from the query to the parent node). Substituting $w = d(P, C)$:
+$$d - k \le w \le d + k$$
+
+**The Exclusion Rule:**
+If a child's edge weight $w$ lies outside this range ($w < d - k$ or $w > d + k$), no word in the entire subtree rooted at $C$ can possibly have $d(Q, C) \le k$. We can safely prune that entire subtree without traversing it or computing edit distances for its descendants.
+
+---
+
+### 3. The Sentinel Bug Mathematical Mechanism (Why It Failed)
+
+- Suppose query $Q$ has true distance $d = 7$ from parent $P$, and search radius $k = 2$.
+- The **correct pruning window** is $[7 - 2, 7 + 2] = [5, 9]$.
+- Suppose a child branch $C$ has edge distance $w = 6$. Since $6 \in [5, 9]$, this child could contain matches (e.g., if $d(Q, C) = 1$ or $2$).
+- If `editDistanceBounded(Q, P, 2)` was used, it bailed out early and returned the sentinel $k + 1 = 3$ instead of 7.
+- Using $d' = 3$, the code computed a corrupted pruning window: $[3 - 2, 3 + 2] = [1, 5]$.
+- The algorithm tested whether $w = 6$ was in $[1, 5]$. Since $6 > 5$, the child branch was **pruned and discarded**.
+- **Result:** Valid words were dropped silently. This is why BK-Tree internal traversal strictly requires the true distance $d$.
+
+---
+
+### 4. Build, Test, and Sanitizer Verification Commands
+
+```bash
+# Debug build with AddressSanitizer and UndefinedBehaviorSanitizer
+cmake -S . -B build-debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -g"
+cmake --build build-debug
+
+# Run all 4 test suites under ASan/UBSan
+cd build-debug && ctest --output-on-failure
+# Output: 100% tests passed (test_edit_distance, test_trie, test_bktree, test_correctness)
+
+# Release build for benchmarking
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+./build/lexicore
+```
 
 ---
