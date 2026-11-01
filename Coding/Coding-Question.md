@@ -111,8 +111,7 @@ vector<pair<int, int>> mergeHazards(vector<pair<int, int>>& hazards) {
     merged.push_back(hazards[0]);
     for (int i = 1; i < hazards.size(); i++) {
         if (hazards[i].first <= merged.back().second) {
-            merged.back().second = max(merged.back().second,
-hazards[i].second);
+            merged.back().second = max(merged.back().second, hazards[i].second);
         } else {
             merged.push_back(hazards[i]);
         }
@@ -120,13 +119,11 @@ hazards[i].second);
     return merged;
 }
 
-int minSensors(vector<pair<int, int>>& stretches,
-vector<pair<int, int>>& hazards) {
+int minSensors(vector<pair<int, int>>& stretches, vector<pair<int, int>>& hazards) {
     vector<pair<int, int>> mergedHazards = mergeHazards(hazards);
     
 // Sort stretches by end time ascending; if same, by start time descending
-    sort(stretches.begin(), stretches.end(), 
-[](const pair<int, int>& a, const pair<int, int>& b) {
+    sort(stretches.begin(), stretches.end(), [](const pair<int, int>& a, const pair<int, int>& b) {
         if (a.second != b.second) return a.second < b.second;
         return a.first > b.first;
     });
@@ -156,11 +153,9 @@ vector<pair<int, int>>& hazards) {
             int left = 0, right = mergedHazards.size() - 1;
             while (left <= right) {
                 int mid = left + (right - left) / 2;
-                if (curr >= mergedHazards[mid].first 
-                && curr <= mergedHazards[mid].second) {
+                if (curr >= mergedHazards[mid].first && curr <= mergedHazards[mid].second) {
                     in_hazard = true;
-                    curr = mergedHazards[mid].first - 1;
-                                      // Skip the hazard zone
+                    curr = mergedHazards[mid].first - 1; // Skip the hazard zone
                     break;
                 } else if (curr < mergedHazards[mid].first) {
                     right = mid - 1;
@@ -253,12 +248,9 @@ int getScore(const vector<int>& A, int i, int j) {
 int countWays(vector<int>& A, int K, int S) {
     int n = A.size();
     
-// dp[c][i][v] = ways to select 'c' subarrays from 
-prefix up to index 'i' with sum 'v'
-// Using vector representation: c goes 0 to K, i goes 0 
-to n, v goes 0 to S
-    vector<vector<vector<int>>> dp(K + 1, 
-vector<vector<int>>(n + 1, vector<int>(S + 1, 0)));
+// dp[c][i][v] = ways to select 'c' subarrays from prefix up to index 'i' with sum 'v'
+// Using vector representation: c goes 0 to K, i goes 0 to n, v goes 0 to S
+    vector<vector<vector<int>>> dp(K + 1, vector<vector<int>>(n + 1, vector<int>(S + 1, 0)));
     
     // Base case
     for (int i = 0; i <= n; i++) {
@@ -272,14 +264,11 @@ vector<vector<int>>(n + 1, vector<int>(S + 1, 0)));
                 // Option 1: Do not include A[i-1] in any subarray
                 dp[c][i][v] = dp[c][i-1][v];
                 
-                // Option 2: A[i-1] is the end of the c-th subarray
-                // Try all possible starting positions j for
- this subarray (0-indexed: j-1)
+                // Option 2: A[i-1] is the end of the c-th subarray Try all possible starting positions j for this subarray (0-indexed: j-1)
                 for (int j = 1; j <= i; j++) {
                     int score = getScore(A, j - 1, i - 1);
                     if (v >= score) {
-                        dp[c][i][v] = 
-(dp[c][i][v] + dp[c-1][j-1][v - score]) % MOD;
+                        dp[c][i][v] = (dp[c][i][v] + dp[c-1][j-1][v - score]) % MOD;
                     }
                 }
             }
@@ -355,8 +344,7 @@ struct Edge {
 };
 
 // DFS function to compute DP values
-void dfs(int u, int p, int k, const vector<vector<Edge>>& adj,
-vector<vector<long long>>& dp) {
+void dfs(int u, int p, int k, const vector<vector<Edge>>& adj, vector<vector<long long>>& dp) {
     long long base_sum = 0;
     vector<long long> gains;
 
@@ -388,8 +376,7 @@ vector<vector<long long>>& dp) {
     }
     dp[u][0] = base_sum + keep_k;
 
-    // Calculate dp[u][1]: Node u is connected to parent, can
-keep up to K-1 edges to children
+    // Calculate dp[u][1]: Node u is connected to parent, can keep up to K-1 edges to children
     long long keep_k_minus_1 = 0;
     if (k > 0) {
         for (int i = 0; i < min((int)gains.size(), k - 1); ++i) {
@@ -402,15 +389,13 @@ keep up to K-1 edges to children
     dp[u][1] = base_sum + keep_k_minus_1;
 }
 
-long long maxRemainingWeights(int n,int k,const
-vector<vector<Edge>>& adj){
+long long maxRemainingWeights(int n,int k,const vector<vector<Edge>>& adj){
     if (k == 0) return 0; // Edge case: no edges can be kept
     
     vector<vector<long long>> dp(n, vector<long long>(2, 0));
     dfs(0, -1, k, adj, dp); // Start DFS from node 0
     
-    return dp[0][0]; 
-// Return the state where root is not connected to a parent
+    return dp[0][0]; // Return the state where root is not connected to a parent
 }
 
 int main() {
@@ -426,8 +411,7 @@ int main() {
     adj[1].push_back({3, 30});
     adj[3].push_back({1, 30});
 
-    cout << "Maximum remaining sum: " << 
-maxRemainingWeights(n, k, adj) << endl;
+    cout << "Maximum remaining sum: " << maxRemainingWeights(n, k, adj) << endl;
     return 0;
 }
 
@@ -470,8 +454,7 @@ int minOperations(vector<int>& current, vector<int>& desired) {
     int n = current.size();
     int curr_ptr = 0;
     
-    // Traverse the desired array to find the longest prefix of current 
-    // that exists as a subsequence in desired.
+    // Traverse the desired array to find the longest prefix of current that exists as a subsequence in desired.
     for (int des_ptr = 0; des_ptr < n; des_ptr++) {
         if (curr_ptr < n && current[curr_ptr] == desired[des_ptr]) {
             curr_ptr++;
@@ -491,8 +474,7 @@ int main() {
     vector<int> current = {1, 2, 3, 4};
     vector<int> desired = {2, 1, 3, 4};
     
-    cout << "Minimum operations: " << 
-minOperations(current, desired) << endl;
+    cout << "Minimum operations: " << minOperations(current, desired) << endl;
     return 0;
 }
 
@@ -552,8 +534,7 @@ int countPerfectSubarrays(const vector<int>& A) {
     long long total_perfect = 0;
     int L = 0;
     
-    // P[0] is part of our initial state for 
-subarray sums starting at index 0
+    // P[0] is part of our initial state for subarray sums starting at index 0
     window.insert(P[0]);
     
     for (int R = 1; R <= n; R++) {
@@ -566,8 +547,7 @@ subarray sums starting at index 0
         // Add the current prefix sum to the window
         window.insert(P[R]);
         
-        // The number of valid subarrays ending at R is the size of the 
-        // current window minus 1 (which simplifies to R - L)
+        // The number of valid subarrays ending at R is the size of the current window minus 1 (which simplifies to R - L)
         total_perfect = (total_perfect + (R - L)) % MOD;
     }
     
@@ -579,8 +559,7 @@ int main() {
     // P = [0, 1, 0, 1]
     // Perfect subarrays: [1], [-1], [1] (Total 3)
     vector<int> A = {1, -1, 1};
-    cout << "Total perfect subarrays: " <<
- countPerfectSubarrays(A) << endl;
+    cout << "Total perfect subarrays: " << countPerfectSubarrays(A) << endl;
     return 0;
 }
 
@@ -678,8 +657,7 @@ int countArrays(const vector<int>& A, long long X) {
 int main() {
     // Example: A = [1, 2], X = 5
     // Required R = 5 - (1+2) = 2. N = 2.
-    // Ways to distribute 2 into 2 variables: 
-C(2 + 2 - 1, 2 - 1) = C(3, 1) = 3.
+    // Ways to distribute 2 into 2 variables: C(2 + 2 - 1, 2 - 1) = C(3, 1) = 3.
     // The arrays P can be: [3, 2], [2, 3], [1, 4]
     vector<int> A = {1, 2};
     long long X = 5;
