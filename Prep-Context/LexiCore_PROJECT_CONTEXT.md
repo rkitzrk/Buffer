@@ -36,7 +36,6 @@ Data flow: `main` loads the dictionary, then builds the Trie (load order) and th
 - Single-threaded; no threads or locks in src/app. Structures are built once and read-only afterwards, so no shared-state protection is needed.
 - Missing or empty dictionary: prints an error and exits 1. Path comes from `argv[1]`, default `data/words.txt` (relative to the working directory).
 - CLI validation: `fuzzy` rejects negative maxDist; `prefix` limit 0 becomes 20; unknown commands print a hint.
-- `exact`, `prefix` and `fuzzy` do not normalize the query (main.cpp). `exact Apple` is not found.
 - Non-numeric `limit` or `maxDist` is not checked; a failed extraction yields 0 [unverified at runtime].
 - No retries, timeouts, persistence or crash recovery; the index is rebuilt each start. Recursion depth is bounded by the longest word (Trie) and BK depth (19 here).
 
@@ -86,7 +85,5 @@ No memory or CLI latency figures exist.
 2. RESULTS.md and README say 5 trials, median reported, and 1 full warm-up pass. In benchmark.cpp `config.numTrials` is only printed in the banner. Each strategy is timed once per size. Warm-up is partial: 10 queries for fuzzy, one pass over the query list for exact and prefix.
 3. RESULTS.md says Release `-O2`. The build directories use `-O3 -DNDEBUG` (CMake default for Release; CMakeLists.txt sets no flags).
 4. README and docs/prep say unshuffled BK depth is "100+". Measured on `data/words.txt` in load order: 27 (verified by run).
-5. README architecture shows a "Normalization" stage before queries. main.cpp normalizes only the dictionary, not queries.
-6. Unsupported in the repo: Trie memory efficiency vs array; that the sentinel bug occurred and the oracle caught it.
-7. docs/prep/Authorization.md and HPE-F.md describe a different project (librdkafka, libpqxx). They are not LexiCore. docs/prep is listed in .gitignore; four study files were added and then deleted in commits 81946bd and 7442355.
-8. Not confirmed: CPU model and provenance of `/usr/share/dict/words`. Benchmarks were not re-run.
+5. Unsupported in the repo: Trie memory efficiency vs array; that the sentinel bug occurred and the oracle caught it.
+6. Not confirmed: CPU model and provenance of `/usr/share/dict/words`. Benchmarks were not re-run.
